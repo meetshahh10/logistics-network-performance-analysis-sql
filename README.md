@@ -149,7 +149,7 @@ logistics-network-performance-analysis-sql
 
 # PowerBI Dashboard
 
-![Dashboard](powerbi/dashboard_canvas)
+![Power BI Dashboard](images/dashboard_canvas.png)
 
 ---
 
