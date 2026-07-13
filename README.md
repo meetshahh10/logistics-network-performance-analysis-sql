@@ -56,8 +56,6 @@ The data simulates real-world logistics operations and supports business analyti
 - SQL
 - GitHub
 
-*(Power BI dashboard will be added in the next phase.)*
-
 ---
 
 ## SQL Skills Demonstrated
@@ -149,13 +147,9 @@ logistics-network-performance-analysis-sql
 
 ---
 
-# Future Improvements
+# PowerBI Dashboard
 
-- Build an interactive Power BI dashboard
-- Connect PostgreSQL directly to Power BI
-- Add route-level profitability dashboard
-- Develop executive KPI dashboard
-- Automate reporting using SQL Views
+![Dashboard](powerbi/dashboard_canvas)
 
 ---
 
