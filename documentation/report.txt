@@ -1,0 +1,270 @@
+=========================================================
+PROJECT: Logistics Network Performance Analytics
+DATABASE: PostgreSQL
+PHASE: Business KPIs
+
+OBJECTIVE:
+Understand the overall logistics operations through
+high-level KPIs before diving into business analysis.
+
+Author : Meet Shah
+=========================================================
+
+/* -----------------------------------------------------------------
+Which customers generate the highest shipment revenue, and what 
+percentage of the company's total revenue does each contribute?
+*/ -----------------------------------------------------------------
+SELECT 
+	c.customer_name,
+	COUNT(l.load_id) AS total_shipments,
+	ROUND(SUM(l.revenue),2) AS total_revenue,
+	ROUND(SUM(l.revenue) * 100.0/(SELECT SUM(revenue) FROM loads),2) AS revenue_percentage
+	FROM customers c
+	JOIN loads l
+	ON c.customer_id = l.customer_id
+	GROUP BY c.customer_name
+	ORDER BY total_revenue DESC
+	LIMIT 10;
+ 
+The analysis shows that First Group is the company's highest revenue-generating customer, contributing $9.14 million in revenue across 3,001 shipments, accounting for 3.48% of total company revenue. The remaining top customers each contribute between 1.54% and 2.43% of total revenue, indicating that revenue is distributed across a broad customer base rather than concentrated among a few accounts.
+This diversified customer portfolio reduces the organization's dependency on any single customer, lowering business risk and improving revenue stability. However, the top-performing customers remain strategically important and should be prioritized through strong customer relationship management, service quality, and contract renewal efforts to sustain long-term revenue growth.
+
+
+/* -----------------------------------------------------------------
+Which transportation routes generate the highest revenue per mile, 
+and which routes are the most profitable for the business?
+
+Objective:
+Calculating Revenue per Mile helps identify the most efficient lanes, 
+which can guide pricing decisions, route optimization, and resource allocation.
+*/ -----------------------------------------------------------------
+
+SELECT
+    r.origin_city,
+    r.destination_city,
+    COUNT(l.load_id) AS total_shipments,
+    ROUND(SUM(l.revenue), 2) AS total_revenue,
+    ROUND(AVG(r.typical_distance_miles), 2) AS average_distance,
+    ROUND(
+        SUM(l.revenue) / SUM(r.typical_distance_miles),
+        2
+    ) AS revenue_per_mile
+
+FROM routes r
+JOIN loads l
+ON r.route_id = l.route_id
+GROUP BY
+    r.origin_city,
+ 
+The analysis identified the top transportation routes based on revenue generated per mile traveled, providing a measure of route efficiency rather than total revenue alone. The Philadelphia → New York route achieved the highest revenue per mile at 2.78, followed closely by Minneapolis → Houston (2.75) and Columbus → Los Angeles (2.73).
+Although some long-haul routes, such as Phoenix → Philadelphia and Charlotte → Portland, generated significantly higher total revenue, their revenue-per-mile remained comparable to shorter routes. This indicates that the organization's pricing strategy is relatively consistent across different route lengths, resulting in a balanced and efficient transportation network.
+From an operational perspective, revenue-per-mile is a more meaningful performance indicator than total revenue because it measures how effectively each mile traveled contributes to revenue generation. Logistics managers can use this KPI to identify high-performing lanes, evaluate pricing strategies, and investigate routes with lower revenue efficiency for potential optimization.
+
+
+/* -----------------------------------------------------------------
+Which drivers demonstrate the strongest overall operational
+performance based on completed trips, revenue generated,
+fuel efficiency, and on-time delivery rate?
+
+Objective:
+Identify high-performing drivers to support recognition,
+training, and operational planning.
+*/ -----------------------------------------------------------------
+
+SELECT
+    d.driver_id,
+    d.first_name || ' ' || d.last_name AS driver_name,
+    COUNT(t.trip_id) AS total_trips,
+    ROUND(SUM(l.revenue),2) AS total_revenue,
+    ROUND(AVG(t.average_mpg),2) AS average_mpg,
+    ROUND(AVG(dm.on_time_delivery_rate),2) AS on_time_percentage
+FROM drivers d
+JOIN trips t
+ON d.driver_id = t.driver_id
+JOIN loads l
+ON t.load_id = l.load_id
+JOIN driver_monthly_metrics dm
+ON d.driver_id = dm.driver_id
+GROUP BY
+    d.driver_id,
+    driver_name
+ORDER BY
+    total_revenue DESC,
+    on_time_percentage DESC
+LIMIT 10;
+ 
+The Driver Performance Scorecard evaluates each driver's contribution using four key operational metrics: completed trips, total revenue generated, fuel efficiency (MPG), and on-time delivery performance. Based on the analysis, Linda Davis (DRV00051) generated the highest revenue of $83.23 million while completing 26,028 trips, making her one of the highest-performing drivers in the dataset. Similarly, Joseph Jones completed the highest number of trips among the top drivers while maintaining a slightly higher average fuel efficiency of 6.52 MPG.
+Although the top-performing drivers generated similar levels of revenue, their on-time delivery percentages ranged between 42% and 48%, highlighting opportunities to improve delivery reliability. Monitoring these operational KPIs together enables logistics managers to recognize high-performing drivers, identify coaching opportunities, and balance productivity with service quality and fuel efficiency.
+/*
+
+
+=========================================================
+PROJECT: Logistics Network Performance Analytics
+DATABASE: PostgreSQL
+PHASE: Advanced Queries
+
+OBJECTIVE:
+Understand the overall logistics operations through
+high-level KPIs before diving into business analysis.
+
+Author : Meet Shah
+=========================================================
+*/
+
+/*-------------------------------------------------------
+Which customers generate the highest total revenue, and how 
+do they rank compared to other customers?
+
+Objective:
+This analysis helps management prioritize strategic customer relationships, 
+allocate resources effectively, and recognize customers who contribute the 
+most to overall business performance.
+*/-------------------------------------------------------
+WITH customer_revenue AS (
+    SELECT
+        c.customer_id,
+        c.customer_name,
+        SUM(l.revenue) AS total_revenue
+    FROM customers c
+    JOIN loads l
+        ON c.customer_id = l.customer_id
+    GROUP BY c.customer_id, c.customer_name)
+SELECT
+    customer_name,
+    ROUND(total_revenue,2) AS total_revenue,
+    RANK() OVER (ORDER BY total_revenue DESC) AS customer_rank
+FROM customer_revenue
+ORDER BY customer_rank
+LIMIT 10;
+
+ 
+The customer revenue ranking highlights the organization's highest-value customers based on total revenue generated. XYZ Foods ranked first with approximately $1.54 million in revenue, followed closely by Superior Group and Metro Group. The small differences in revenue among the top-ranked customers suggest that the company's revenue is distributed across several major accounts rather than being dominated by a single customer.
+From a business perspective, this balanced revenue distribution reduces customer concentration risk while emphasizing the importance of maintaining strong relationships with multiple strategic customers. Regularly monitoring customer rankings enables management to identify changes in customer value, prioritize account management efforts, and support long-term revenue growth.
+
+
+/*-------------------------------------------------------
+How can customers be categorized based on the total revenue they generate?
+
+Objective:
+Segment customers into revenue categories (Gold, Silver, Bronze) to support 
+customer relationship management and business strategy.
+*/-------------------------------------------------------
+
+WITH customer_revenue AS (
+    SELECT
+        c.customer_name,
+        SUM(l.revenue) AS total_revenue
+    FROM customers c
+    JOIN loads l
+        ON c.customer_id = l.customer_id
+    GROUP BY c.customer_name)
+SELECT
+    customer_name,
+    ROUND(total_revenue,2) AS total_revenue,
+    CASE
+        WHEN total_revenue >= 1400000 THEN 'Gold'
+        WHEN total_revenue >= 1200000 THEN 'Silver'
+        ELSE 'Bronze'
+    END AS customer_category
+FROM customer_revenue
+ORDER BY total_revenue DESC;
+  
+The customer segmentation analysis classifies customers into Gold, Silver, and Bronze categories based on the total revenue they generate. This enables the business to move beyond raw revenue figures and group customers into meaningful business segments that support strategic decision-making.
+The highest-revenue customers fall into the Gold category, indicating their significant contribution to overall revenue. These customers should receive priority account management and retention efforts. Customers in the Silver category represent strong growth opportunities and can be targeted through tailored sales and service initiatives, while Bronze customers provide opportunities for expansion through marketing campaigns and upselling strategies.
+Customer segmentation simplifies performance analysis by allowing managers to focus on groups of customers rather than reviewing hundreds of individual accounts, making it easier to prioritize resources and develop customer-specific business strategies.
+
+
+/*-------------------------------------------------------
+How does cumulative revenue increase as customers
+are ranked from highest to lowest revenue?
+
+Objective:
+Track cumulative revenue contribution to identify
+how quickly revenue accumulates across customers.
+*/-------------------------------------------------------
+
+WITH customer_revenue AS (
+    SELECT
+        c.customer_name,
+        SUM(l.revenue) AS total_revenue
+    FROM customers c
+    JOIN loads l
+        ON c.customer_id = l.customer_id
+    GROUP BY c.customer_name)
+SELECT
+    customer_name,
+    ROUND(total_revenue,2) AS total_revenue,
+    ROUND(
+        SUM(total_revenue) OVER(
+            ORDER BY total_revenue DESC),2) AS running_total
+FROM customer_revenue
+ORDER BY total_revenue DESC;
+ 
+The running total analysis illustrates how cumulative revenue grows as customers are ranked from the highest to the lowest revenue contributor. First Group generated $9.14 million in revenue, establishing the initial cumulative total. After including First Logistics, the cumulative revenue increased to $15.52 million, and by the time the top five customers were considered, the cumulative revenue had exceeded $31.4 million.
+This analysis helps management understand how revenue accumulates across the customer base and identify whether a small number of customers contribute a significant share of overall revenue. Running totals are particularly useful for revenue concentration analysis, customer prioritization, and strategic account management, enabling decision-makers to focus resources on customers that have the greatest business impact.
+
+
+/*-------------------------------------------------------
+How do shipment volume and revenue compare across
+different booking types?
+
+Objective:
+Create a pivot-style report to compare shipment
+volume and revenue generated by each booking type.
+*/-------------------------------------------------------
+
+SELECT
+    COUNT(CASE
+        WHEN booking_type = 'Contract'
+        THEN load_id
+    END) AS contract_shipments,
+    ROUND(SUM(CASE
+        WHEN booking_type = 'Contract'
+        THEN revenue
+    END),2) AS contract_revenue,
+    COUNT(CASE
+        WHEN booking_type = 'Dedicated'
+        THEN load_id
+    END) AS dedicated_shipments,
+    ROUND(SUM(CASE
+        WHEN booking_type = 'Dedicated'
+        THEN revenue
+    END),2) AS dedicated_revenue,
+    COUNT(CASE
+        WHEN booking_type = 'Spot'
+        THEN load_id
+    END) AS spot_shipments,
+    ROUND(SUM(CASE
+        WHEN booking_type = 'Spot'
+        THEN revenue
+    END),2) AS spot_revenue
+FROM loads;
+ 
+The pivot analysis reveals that Dedicated bookings are the company's primary business model, accounting for 42,337 shipments and generating approximately $130.24 million in revenue, making it the highest-performing booking type in both shipment volume and financial contribution.
+In comparison, Contract and Spot bookings generated a similar number of shipments (21,545 and 21,528, respectively) and produced comparable revenues of approximately $65.97 million and $66.32 million. This balanced performance suggests that while Dedicated contracts drive the majority of business, Contract and Spot bookings continue to provide significant operational flexibility and revenue diversification.
+Overall, the booking portfolio appears well balanced, with Dedicated contracts ensuring stable long-term business while Contract and Spot shipments support additional capacity utilization and customer demand.
+
+## KEY FINDINGS
+
+Metric	Value
+Highest Shipment Type - Dedicated
+Dedicated Shipments - 42,337
+Dedicated Revenue - $130.24M
+Contract Shipments - 21,545
+Contract Revenue - $65.97M
+Spot Shipments - 21,528
+Spot Revenue - $66.32M
+
+## Project Conclusion
+
+This project analyzed a comprehensive logistics operations database using PostgreSQL to evaluate customer performance, route efficiency, driver productivity, and booking type trends. The objective was to transform raw logistics data into actionable business insights through SQL-based analysis.
+Throughout the project, business questions were translated into analytical queries that measured operational performance, identified high-value customers, evaluated transportation efficiency, segmented customers based on revenue, and summarized shipment activity across different booking models. Advanced SQL techniques such as Common Table Expressions (CTEs), Window Functions (RANK(), SUM() OVER()), CASE expressions, and Conditional Aggregation (Pivot Reports) were used to solve real-world logistics problems.
+The analysis demonstrated how SQL can support operational decision-making by converting transactional data into meaningful performance indicators that can be used by logistics managers and business stakeholders.
+
+## Overall Business Conclusion
+
+The analysis indicates that the logistics network operates with a well-diversified customer portfolio, reducing dependency on individual customers and contributing to revenue stability. Revenue-per-mile analysis showed relatively consistent performance across major transportation routes, suggesting a balanced pricing strategy and efficient network utilization.
+Customer segmentation identified distinct customer tiers that can support targeted account management, while cumulative revenue analysis demonstrated how revenue is distributed across the customer base. Additionally, the booking type analysis highlighted Dedicated contracts as the organization's primary revenue driver, emphasizing the importance of maintaining long-term customer partnerships while leveraging Contract and Spot bookings to provide operational flexibility.
+Collectively, these insights provide a data-driven foundation for improving customer relationship management, transportation planning, operational efficiency, and strategic decision-making.
+
+

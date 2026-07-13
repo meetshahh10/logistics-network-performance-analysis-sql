@@ -1,0 +1,219 @@
+# Data Dictionary
+
+## Project Overview
+
+This data dictionary describes the tables used in the **Logistics Network Performance Analysis** project. The database simulates real-world logistics operations, including customer orders, transportation, fleet management, delivery performance, and operational metrics.
+
+---
+
+# 1. Drivers
+
+| Column | Description |
+|---------|-------------|
+| driver_id | Unique identifier for each driver (Primary Key). |
+| first_name | Driver's first name. |
+| last_name | Driver's last name. |
+| hire_date | Date the driver joined the company. |
+| license_class | Commercial driver's license classification. |
+| years_experience | Total years of driving experience. |
+| employment_status | Driver employment status (Active/Inactive). |
+
+---
+
+# 2. Trucks
+
+| Column | Description |
+|---------|-------------|
+| truck_id | Unique truck identifier (Primary Key). |
+| truck_number | Fleet truck number. |
+| make | Truck manufacturer. |
+| model | Truck model. |
+| model_year | Manufacturing year. |
+| status | Current operational status. |
+| purchase_date | Truck acquisition date. |
+
+---
+
+# 3. Trailers
+
+| Column | Description |
+|---------|-------------|
+| trailer_id | Unique trailer identifier (Primary Key). |
+| trailer_number | Trailer fleet number. |
+| trailer_type | Type of trailer (Dry Van, Reefer, Flatbed, etc.). |
+| capacity | Trailer load capacity. |
+| status | Current trailer status. |
+
+---
+
+# 4. Customers
+
+| Column | Description |
+|---------|-------------|
+| customer_id | Unique customer identifier (Primary Key). |
+| customer_name | Customer company name. |
+| industry | Customer industry sector. |
+| contract_type | Contract agreement type. |
+| region | Customer operating region. |
+
+---
+
+# 5. Facilities
+
+| Column | Description |
+|---------|-------------|
+| facility_id | Unique facility identifier (Primary Key). |
+| facility_name | Warehouse or terminal name. |
+| city | Facility city. |
+| state | Facility state/province. |
+| capacity | Storage or operational capacity. |
+
+---
+
+# 6. Routes
+
+| Column | Description |
+|---------|-------------|
+| route_id | Unique transportation route identifier (Primary Key). |
+| origin | Shipment origin. |
+| destination | Shipment destination. |
+| distance_miles | Distance between origin and destination. |
+| rate_per_mile | Transportation rate charged per mile. |
+
+---
+
+# 7. Loads
+
+| Column | Description |
+|---------|-------------|
+| load_id | Unique shipment identifier (Primary Key). |
+| customer_id | Customer placing the shipment (Foreign Key). |
+| route_id | Assigned transportation route (Foreign Key). |
+| booking_type | Shipment booking category (Contract, Dedicated, Spot). |
+| revenue | Revenue generated from the shipment. |
+| load_date | Shipment booking date. |
+
+---
+
+# 8. Trips
+
+| Column | Description |
+|---------|-------------|
+| trip_id | Unique trip identifier (Primary Key). |
+| load_id | Shipment associated with the trip (Foreign Key). |
+| driver_id | Assigned driver (Foreign Key). |
+| truck_id | Assigned truck (Foreign Key). |
+| trailer_id | Assigned trailer (Foreign Key). |
+| total_miles | Total miles traveled. |
+| fuel_consumed | Fuel consumed during the trip. |
+| trip_duration_hours | Total trip duration. |
+
+---
+
+# 9. Fuel Purchases
+
+| Column | Description |
+|---------|-------------|
+| fuel_purchase_id | Unique fuel transaction identifier (Primary Key). |
+| trip_id | Related trip (Foreign Key). |
+| truck_id | Truck receiving fuel. |
+| driver_id | Driver purchasing fuel. |
+| gallons | Fuel purchased (gallons). |
+| fuel_cost | Total fuel cost. |
+| purchase_date | Fuel purchase date. |
+
+---
+
+# 10. Maintenance Records
+
+| Column | Description |
+|---------|-------------|
+| maintenance_id | Unique maintenance record identifier (Primary Key). |
+| truck_id | Truck serviced (Foreign Key). |
+| maintenance_type | Type of maintenance performed. |
+| maintenance_cost | Cost of maintenance. |
+| downtime_hours | Vehicle downtime. |
+| maintenance_date | Service date. |
+
+---
+
+# 11. Delivery Events
+
+| Column | Description |
+|---------|-------------|
+| event_id | Unique delivery event identifier (Primary Key). |
+| load_id | Shipment identifier (Foreign Key). |
+| trip_id | Related trip (Foreign Key). |
+| facility_id | Facility involved in the event. |
+| event_type | Pickup or Delivery event. |
+| on_time_status | Indicates if the delivery was on time. |
+
+---
+
+# 12. Safety Incidents
+
+| Column | Description |
+|---------|-------------|
+| incident_id | Unique incident identifier (Primary Key). |
+| trip_id | Related trip (Foreign Key). |
+| truck_id | Truck involved. |
+| driver_id | Driver involved. |
+| incident_type | Type of safety incident. |
+| damage_cost | Financial impact of the incident. |
+
+---
+
+# 13. Driver Monthly Metrics
+
+| Column | Description |
+|---------|-------------|
+| driver_id | Driver identifier (Composite Primary Key). |
+| month | Reporting month (Composite Primary Key). |
+| trips_completed | Number of trips completed. |
+| total_miles | Monthly miles driven. |
+| total_revenue | Monthly revenue generated. |
+| average_mpg | Average fuel efficiency. |
+| on_time_delivery_rate | Percentage of on-time deliveries. |
+
+---
+
+# 14. Truck Utilization Metrics
+
+| Column | Description |
+|---------|-------------|
+| truck_id | Truck identifier (Composite Primary Key). |
+| month | Reporting month (Composite Primary Key). |
+| utilization_percentage | Monthly truck utilization. |
+| total_miles | Monthly miles driven. |
+| total_revenue | Revenue generated by the truck. |
+
+---
+
+# Entity Relationships
+
+- Customers → Loads (One-to-Many)
+- Routes → Loads (One-to-Many)
+- Loads → Trips (One-to-One)
+- Drivers → Trips (One-to-Many)
+- Trucks → Trips (One-to-Many)
+- Trailers → Trips (One-to-Many)
+- Trips → Fuel Purchases (One-to-Many)
+- Trucks → Maintenance Records (One-to-Many)
+- Trips → Delivery Events (One-to-Many)
+- Trips → Safety Incidents (One-to-Many)
+
+---
+
+# Business Use Cases
+
+This database supports analysis for:
+
+- Customer Revenue Analysis
+- Route Profitability
+- Fleet Utilization
+- Driver Performance
+- Fuel Efficiency
+- Maintenance Cost Analysis
+- Delivery Performance
+- Booking Type Analysis
+- Logistics KPI Reporting
