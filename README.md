@@ -158,5 +158,3 @@ logistics-network-performance-analysis-sql
 # Author
 
 **Meet Shah**
-
-If you found this project helpful, feel free to connect with me on LinkedIn.
