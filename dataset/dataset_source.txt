@@ -1,0 +1,12 @@
+Dataset Name:
+Logistics Operations Database
+
+Source:
+https://www.kaggle.com/datasets/yogape/logistics-operations-database
+
+Description:
+Synthetic logistics operations dataset used for SQL analytics and business intelligence practice.
+
+Note:
+The dataset is available for download from Kaggle.
+CSV files are not included in this repository.
