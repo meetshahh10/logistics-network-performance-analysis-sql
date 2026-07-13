@@ -45,6 +45,10 @@ The data simulates real-world logistics operations and supports business analyti
 
 ---
 
+## Database Schema
+
+![ER Diagram](images/er_diagram.png)
+
 ## Tools & Technologies
 
 - PostgreSQL
